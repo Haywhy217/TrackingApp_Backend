@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'expenses',
     'users',
     'contact_form',
@@ -45,6 +46,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+  'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -84,10 +86,19 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-
+CORS_ALLOWED_ORIGINS =[
+    "http://localhost:5173",
+]
+CORS_ALLOW_CREDENTIALS= True
 
 AUTH_USER_MODEL = 'users.CustomUser'
 
+#JWT settings 
+import datetime
+import secrets
+
+SECRET_KEY =secrets.token_hex(32) # replace with your secret key
+JWT_EXPIRATION_DELTA = datetime.timedelta(minutes=5)
 
 
 # Password validation

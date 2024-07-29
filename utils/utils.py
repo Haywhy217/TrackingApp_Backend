@@ -12,7 +12,7 @@ def create_jwt_token(user):
 
 
   token= jwt.encode(payload,settings.SECRET_KEY,algorithm="HS256")
-  return token
+  return token.decode('utf-8')
 
 def decode_jwt_token(token):
 
