@@ -70,38 +70,30 @@ def add_expense(request):
         return JsonResponse({"message": "Invalid method"}, status=405)
 
 @csrf_exempt
-def update_expense(request, expense_id):
-    if request.method == "PUT":
-        json_data = request.body.decode("utf-8")
-        data_dict = json.loads(json_data)
-        
-        try:
-            expense = Expense.objects.get(id=expense_id)
-        except Expense.DoesNotExist:
-            return JsonResponse({"message": "Expense not found"}, status=404)
-
-        
-        expense.title = data_dict.get("title", expense.title)
-        expense.description = data_dict.get("description", expense.description)
-        expense.amount = data_dict.get("amount", expense.amount)
-        expense.date = data_dict.get("date", expense.date)
-        expense.type = data_dict.get("type", expense.type)
-        
+def update_expense(request):
+    if request.method == 'PUT':
+        expense_data = json.loads(request.body)
+        expense = Expense.objects.get(id=expense_data['id'])
+        expense.title = expense_data['title']
+        expense.description = expense_data['description']
+        expense.amount = expense_data['amount']
+        expense.date = expense_data['date']
+        expense.type = expense_data['type']
         expense.save()
-        return JsonResponse({"message": "Expense updated successfully"}, status=200)
-
+        return JsonResponse({'message': 'Expense updated successfully'})
     else:
-        return JsonResponse({"message": "Invalid method"}, status=405)
+        return JsonResponse({'message': 'Invalid method'})
 
 @csrf_exempt
-def delete_expense(request, expense_id):
-    if request.method == "DELETE":
+def delete_expense(request):
+    if request.method == 'DELETE':
+        expense_data = json.loads(request.body)
+        expense_id = expense_data['id']
         try:
             expense = Expense.objects.get(id=expense_id)
             expense.delete()
-            return JsonResponse({"message": "Expense deleted successfully"}, status=200)
+            return JsonResponse({'message': 'Expense deleted successfully'})
         except Expense.DoesNotExist:
-            return JsonResponse({"message": "Expense not found"}, status=404)
-
+            return JsonResponse({'message': 'Expense not found'}, status=404)
     else:
-        return JsonResponse({"message": "Invalid method"}, status=405)
+        return JsonResponse({'message': 'Invalid method'})

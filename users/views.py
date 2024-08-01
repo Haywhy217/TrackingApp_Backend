@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render,redirect
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.models import User
@@ -32,7 +32,6 @@ def register(request):
         return JsonResponse({"message": "Registration Successful"}, status=201)
 
     return JsonResponse({"message": "Invalid method. Use POST."}, status=405)
-
 
 @csrf_exempt
 def login_view(request):
