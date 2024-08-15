@@ -72,28 +72,41 @@ def add_expense(request):
 @csrf_exempt
 def update_expense(request):
     if request.method == 'PUT':
-        expense_data = json.loads(request.body)
-        expense = Expense.objects.get(id=expense_data['id'])
-        expense.title = expense_data['title']
-        expense.description = expense_data['description']
-        expense.amount = expense_data['amount']
-        expense.date = expense_data['date']
-        expense.type = expense_data['type']
-        expense.save()
-        return JsonResponse({'message': 'Expense updated successfully'})
+        try:
+            expense_data = json.loads(request.body)
+            title = expense_data.get('title')
+            date = expense_data.get('date')
+
+            expense = Expense.objects.filter(title=title, date=date).first()
+            if expense:
+                expense.title = expense_data.get('title', expense.title)
+                expense.description = expense_data.get('description', expense.description)
+                expense.amount = expense_data.get('amount', expense.amount)
+                expense.date = expense_data.get('date', expense.date)
+                expense.type = expense_data.get('type', expense.type)
+                expense.save()
+                return JsonResponse({'message': 'Expense updated successfully'})
+            else:
+                return JsonResponse({'message': 'Expense not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid data'}, status=400)
     else:
         return JsonResponse({'message': 'Invalid method'})
 
 @csrf_exempt
 def delete_expense(request):
     if request.method == 'DELETE':
-        expense_data = json.loads(request.body)
-        expense_id = expense_data['id']
         try:
-            expense = Expense.objects.get(id=expense_id)
-            expense.delete()
-            return JsonResponse({'message': 'Expense deleted successfully'})
-        except Expense.DoesNotExist:
-            return JsonResponse({'message': 'Expense not found'}, status=404)
+            expense_data = json.loads(request.body)
+            title = expense_data.get('title')
+            date = expense_data.get('date')
+            expenses = Expense.objects.filter(title=title, date=date)
+            if expenses.exists():
+                expenses.delete()
+                return JsonResponse({'message': 'Expense deleted successfully'})
+            else:
+                return JsonResponse({'message': 'Expense not found'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'message': 'Invalid data'}, status=400)
     else:
         return JsonResponse({'message': 'Invalid method'})

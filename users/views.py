@@ -12,48 +12,58 @@ import json
 User = get_user_model()
 
 
-
 @csrf_exempt
 def register(request):
     if request.method == "POST":
-        json_data = request.body.decode("utf-8")
-        data_dict = json.loads(json_data)
+        try:
+            json_data = request.body.decode("utf-8")
+            data_dict = json.loads(json_data)
+        
+            email = data_dict.get("email")
+            username = data_dict.get("username")
+            password = data_dict.get("password")
+
+            if User.objects.filter(username=username).exists():
+                return JsonResponse({"message": "User already exists"}, status=400)
+
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({"message": "Email already in use"}, status=400)
+
+            user = User.objects.create_user(username=username, password=password, email=email)
+            user.save()
+
+            return JsonResponse({"message": "Registration Successful"}, status=201)
+        
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)
     
-        email = data_dict.get("email")
-        username = data_dict.get("username")
-        password = data_dict.get("password")
-
-        if User.objects.filter(username=username).exists():
-            return JsonResponse({"message": "User already exists"}, status=400)
-
-        user = User.objects.create_user(username=username, password=password, email=email)
-        user.save()
-
-        return JsonResponse({"message": "Registration Successful"}, status=201)
-
     return JsonResponse({"message": "Invalid method. Use POST."}, status=405)
+
 
 @csrf_exempt
 def login_view(request):
     if request.method == "POST":
-        json_data = request.body.decode("utf-8")
-        data_dict = json.loads(json_data)
+        try:
+            json_data = request.body.decode("utf-8")
+            data_dict = json.loads(json_data)
 
-        username = data_dict.get("username")
-        password = data_dict.get("password")
+            username = data_dict.get("username")
+            password = data_dict.get("password")
 
-        user = authenticate(username=username, password=password)
+            user = authenticate(username=username, password=password)
 
-        if user is not None:
-            token = create_jwt_token(user)
-            response = JsonResponse({"message": "Login successful", "token": token})
-            response.set_cookie(key='jwt', value=token, httponly=True)
-            return response  # Return the response with the token
+            if user is not None:
+                token = create_jwt_token(user)
+                response = JsonResponse({"message": "Login successful", "token": token})
+                response.set_cookie(key='jwt', value=token, httponly=True)
+                return response
 
-        return JsonResponse({"message": "Invalid credentials"}, status=401)
-
+            return JsonResponse({"message": "Invalid credentials"}, status=401)
+        except json.JSONDecodeError:
+            return JsonResponse({"message": "Invalid JSON data"}, status=400)
+        except Exception as e:
+            return JsonResponse({"message": str(e)}, status=500)
     return JsonResponse({"message": "Invalid method. Use POST."}, status=405)
-
 
 @csrf_exempt
 def logout(request):
